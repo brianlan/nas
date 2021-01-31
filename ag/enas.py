@@ -37,7 +37,7 @@ mynet = ENAS_Sequential(
     ResUnit(1, 8, hidden_channels=ag.space.Categorical(4, 8), kernel=ag.space.Categorical(3, 5), stride=2),
     ResUnit(8, 8, hidden_channels=8, kernel=ag.space.Categorical(3, 5), stride=2),
     ResUnit(8, 16, hidden_channels=8, kernel=ag.space.Categorical(3, 5), stride=2),
-    ResUnit(16, 16, hidden_channels=8, kernel=ag.space.Categorical(3, 5), stride=1, with_zero=True),
+    ResUnit(16, 16, hidden_channels=8, kernel=ag.space.Categorical(3, 5), stride=1, with_zero=True), # with_zero=True makes skipping this unit one of the options
     ResUnit(16, 16, hidden_channels=8, kernel=ag.space.Categorical(3, 5), stride=1, with_zero=True),
     nn.GlobalAvgPool2D(),
     nn.Flatten(),
@@ -56,19 +56,21 @@ print('Average latency is {:.2f} ms, latency of the current architecture is {:.2
 
 print(f"mynet.nparams: {mynet.nparams}")
 
-reward_fn = lambda metric, net: metric * ((net.avg_latency / net.latency) ** 0.1)
+beta = 1.0  # or 0.1, the larget this value is, the more it favors latency
+reward_fn = lambda metric, net: metric * ((net.avg_latency / net.latency) ** beta)
 
 
 import tempfile
 tmp_chkp_dir = tempfile.mkdtemp()
 scheduler = ENAS_Scheduler(mynet, train_set='mnist',
                            reward_fn=reward_fn, batch_size=128, num_gpus=0,
-                           warmup_epochs=0, epochs=1, controller_lr=3e-3,
+                           warmup_epochs=0, epochs=2, controller_lr=3e-3,
                            checkname=f"{tmp_chkp_dir}/checkpoint.ag",
                            plot_frequency=10, update_arch_frequency=5)
 
-
 scheduler.run()
+
+print(f"Best Latency: {mynet.latency:.2f}")
 
 # mynet.graph
 mynet.graph.render('best-net.gv', view=False)
