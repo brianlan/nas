@@ -118,4 +118,4 @@ dmypy.json
 .vscode
 
 # temp files
-*/dask-worker-space
+*dask-worker-space
