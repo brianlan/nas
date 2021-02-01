@@ -11,10 +11,10 @@ print(f"autogluon version: {ag.__version__}")
 def gaussian(x, y, x0, y0, xalpha, yalpha, A):
     return A * np.exp( -((x-x0)/xalpha)**2 -((y-y0)/yalpha)**2)
 
-config_size = 100
-num_trials = 280
+max_size = 100
+num_trials = 320
 
-x, y = np.linspace(0, config_size - 1, config_size), np.linspace(0, config_size - 1, config_size)
+x, y = np.linspace(0, max_size - 1, max_size), np.linspace(0, max_size - 1, max_size)
 X, Y = np.meshgrid(x, y)
 
 Z = np.zeros(X.shape)
@@ -37,8 +37,8 @@ plt.close()
 
 
 @ag.args(
-    x=ag.space.Categorical(*list(range(config_size))),
-    y=ag.space.Categorical(*list(range(config_size))),
+    x=ag.space.Categorical(*list(range(max_size))),
+    y=ag.space.Categorical(*list(range(max_size))),
 )
 def rl_simulation(args, reporter):
     x, y = args.x, args.y
